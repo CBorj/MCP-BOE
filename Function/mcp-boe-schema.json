@@ -1,0 +1,486 @@
+{
+  "name": "mcp-boe-server",
+  "version": "1.0.0",
+  "description": "Model Context Protocol server para acceso a la API del BOE (Boletín Oficial del Estado) español",
+  "author": "CBorj",
+  "license": "MIT",
+  "homepage": "https://github.com/CBorj/MCP-BOE",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/CBorj/MCP-BOE.git"
+  },
+  "mcpVersion": "2024-11-05",
+  "capabilities": {
+    "tools": {},
+    "prompts": {},
+    "resources": {}
+  },
+  "tools": [
+    {
+      "name": "boe_legislation_summary",
+      "description": "Obtiene un resumen de la legislación disponible en el BOE, incluyendo estadísticas y documentos recientes",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date",
+            "description": "Fecha en formato YYYY-MM-DD para filtrar documentos (opcional)"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 20,
+            "description": "Número máximo de documentos a retornar"
+          }
+        },
+        "additionalProperties": false
+      },
+      "examples": [
+        {
+          "input": {"date": "2024-01-15", "limit": 10},
+          "description": "Obtener resumen de legislación para el 15 de enero de 2024, máximo 10 documentos"
+        }
+      ]
+    },
+    {
+      "name": "boe_legislation_search",
+      "description": "Busca documentos legislativos en el BOE utilizando criterios específicos como texto, fecha, departamento, etc.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Texto a buscar en el contenido de los documentos"
+          },
+          "date": {
+            "type": "string",
+            "format": "date",
+            "description": "Fecha específica en formato YYYY-MM-DD"
+          },
+          "dateRange": {
+            "type": "object",
+            "properties": {
+              "from": {"type": "string", "format": "date"},
+              "to": {"type": "string", "format": "date"}
+            },
+            "description": "Rango de fechas para la búsqueda"
+          },
+          "department": {
+            "type": "string",
+            "description": "Código o nombre del departamento emisor"
+          },
+          "section": {
+            "type": "string",
+            "enum": ["I", "II", "III", "IV", "V"],
+            "description": "Sección del BOE (I: Disposiciones generales, II: Autoridades y personal, III: Otras disposiciones, IV: Administración de Justicia, V: Anuncios)"
+          },
+          "documentType": {
+            "type": "string",
+            "description": "Tipo de documento (ley, real decreto, orden, etc.)"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 20
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      },
+      "examples": [
+        {
+          "input": {"query": "inteligencia artificial", "section": "I", "limit": 5},
+          "description": "Buscar documentos sobre inteligencia artificial en disposiciones generales"
+        },
+        {
+          "input": {"dateRange": {"from": "2024-01-01", "to": "2024-01-31"}, "department": "Ministerio de Justicia"},
+          "description": "Buscar documentos del Ministerio de Justicia en enero 2024"
+        }
+      ]
+    },
+    {
+      "name": "boe_legislation_document",
+      "description": "Obtiene el contenido completo de un documento específico del BOE utilizando su identificador",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Identificador único del documento BOE (formato: BOE-A-YYYY-NNNNN)"
+          },
+          "format": {
+            "type": "string",
+            "enum": ["xml", "pdf", "html"],
+            "default": "xml",
+            "description": "Formato de salida del documento"
+          },
+          "includeMetadata": {
+            "type": "boolean",
+            "default": true,
+            "description": "Incluir metadatos del documento"
+          }
+        },
+        "required": ["id"],
+        "additionalProperties": false
+      },
+      "examples": [
+        {
+          "input": {"id": "BOE-A-2024-00001", "format": "xml"},
+          "description": "Obtener documento específico en formato XML"
+        }
+      ]
+    },
+    {
+      "name": "boe_summary_daily",
+      "description": "Obtiene el sumario diario del BOE para una fecha específica, mostrando todos los documentos publicados",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date",
+            "description": "Fecha del sumario en formato YYYY-MM-DD"
+          },
+          "section": {
+            "type": "string",
+            "enum": ["I", "II", "III", "IV", "V", "all"],
+            "default": "all",
+            "description": "Sección específica o todas las secciones"
+          },
+          "includeContent": {
+            "type": "boolean",
+            "default": false,
+            "description": "Incluir extracto del contenido de cada documento"
+          }
+        },
+        "required": ["date"],
+        "additionalProperties": false
+      },
+      "examples": [
+        {
+          "input": {"date": "2024-01-15", "section": "I"},
+          "description": "Sumario de disposiciones generales del 15 de enero 2024"
+        }
+      ]
+    },
+    {
+      "name": "boe_summary_search",
+      "description": "Busca en los sumarios del BOE utilizando criterios de texto y filtros temporales",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Texto a buscar en títulos y descripciones"
+          },
+          "section": {
+            "type": "string",
+            "enum": ["I", "II", "III", "IV", "V"],
+            "description": "Sección específica del BOE"
+          },
+          "dateRange": {
+            "type": "object",
+            "properties": {
+              "from": {"type": "string", "format": "date"},
+              "to": {"type": "string", "format": "date"}
+            },
+            "description": "Rango de fechas para la búsqueda"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 20
+          }
+        },
+        "required": ["query"],
+        "additionalProperties": false
+      },
+      "examples": [
+        {
+          "input": {"query": "subvenciones", "section": "III", "dateRange": {"from": "2024-01-01", "to": "2024-01-31"}},
+          "description": "Buscar sumarios sobre subvenciones en otras disposiciones durante enero 2024"
+        }
+      ]
+    },
+    {
+      "name": "boe_summary_section",
+      "description": "Obtiene el sumario de una sección específica del BOE para una fecha determinada",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "section": {
+            "type": "string",
+            "enum": ["I", "II", "III", "IV", "V"],
+            "description": "Sección del BOE a consultar"
+          },
+          "date": {
+            "type": "string",
+            "format": "date",
+            "description": "Fecha del sumario en formato YYYY-MM-DD"
+          },
+          "detailed": {
+            "type": "boolean",
+            "default": false,
+            "description": "Incluir información detallada de cada documento"
+          }
+        },
+        "required": ["section", "date"],
+        "additionalProperties": false
+      },
+      "examples": [
+        {
+          "input": {"section": "I", "date": "2024-01-15", "detailed": true},
+          "description": "Sumario detallado de disposiciones generales del 15 de enero 2024"
+        }
+      ]
+    },
+    {
+      "name": "boe_auxiliary_departments",
+      "description": "Obtiene la lista completa de departamentos y organismos que publican en el BOE",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "filter": {
+            "type": "string",
+            "description": "Filtro de texto para buscar departamentos específicos"
+          },
+          "includeStats": {
+            "type": "boolean",
+            "default": false,
+            "description": "Incluir estadísticas de publicaciones por departamento"
+          }
+        },
+        "additionalProperties": false
+      },
+      "examples": [
+        {
+          "input": {"filter": "Ministerio"},
+          "description": "Obtener solo los departamentos que contengan 'Ministerio'"
+        }
+      ]
+    },
+    {
+      "name": "boe_auxiliary_sections",
+      "description": "Obtiene información sobre las secciones del BOE y sus características",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "includeDescription": {
+            "type": "boolean",
+            "default": true,
+            "description": "Incluir descripción detallada de cada sección"
+          }
+        },
+        "additionalProperties": false
+      },
+      "examples": [
+        {
+          "input": {"includeDescription": true},
+          "description": "Obtener todas las secciones con sus descripciones"
+        }
+      ]
+    },
+    {
+      "name": "boe_auxiliary_subsections",
+      "description": "Obtiene las subsecciones disponibles dentro de cada sección del BOE",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "section": {
+            "type": "string",
+            "enum": ["I", "II", "III", "IV", "V"],
+            "description": "Sección para la cual obtener subsecciones"
+          }
+        },
+        "additionalProperties": false
+      },
+      "examples": [
+        {
+          "input": {"section": "I"},
+          "description": "Obtener subsecciones de Disposiciones Generales"
+        }
+      ]
+    },
+    {
+      "name": "boe_auxiliary_document_types",
+      "description": "Obtiene los tipos de documentos que se publican en el BOE (leyes, decretos, órdenes, etc.)",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "section": {
+            "type": "string",
+            "enum": ["I", "II", "III", "IV", "V"],
+            "description": "Filtrar tipos de documento por sección"
+          },
+          "includeExamples": {
+            "type": "boolean",
+            "default": false,
+            "description": "Incluir ejemplos de cada tipo de documento"
+          }
+        },
+        "additionalProperties": false
+      },
+      "examples": [
+        {
+          "input": {"section": "I", "includeExamples": true},
+          "description": "Tipos de documento en disposiciones generales con ejemplos"
+        }
+      ]
+    },
+    {
+      "name": "boe_auxiliary_territories",
+      "description": "Obtiene información sobre territorios y comunidades autónomas para filtrar publicaciones",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "includeStats": {
+            "type": "boolean",
+            "default": false,
+            "description": "Incluir estadísticas de publicaciones por territorio"
+          }
+        },
+        "additionalProperties": false
+      },
+      "examples": [
+        {
+          "input": {"includeStats": true},
+          "description": "Obtener territorios con estadísticas de publicaciones"
+        }
+      ]
+    }
+  ],
+  "prompts": [
+    {
+      "name": "legislation_analysis",
+      "description": "Analiza y resume documentos legislativos específicos",
+      "arguments": [
+        {
+          "name": "document_ids",
+          "description": "Lista de IDs de documentos BOE a analizar",
+          "required": true
+        },
+        {
+          "name": "analysis_type",
+          "description": "Tipo de análisis: summary, impact, changes, comparison",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "regulatory_search",
+      "description": "Búsqueda especializada en normativa por tema específico",
+      "arguments": [
+        {
+          "name": "topic",
+          "description": "Tema o área de la normativa a buscar",
+          "required": true
+        },
+        {
+          "name": "time_period",
+          "description": "Período de tiempo a considerar",
+          "required": false
+        }
+      ]
+    }
+  ],
+  "resources": [
+    {
+      "uri": "boe://daily-summary/{date}",
+      "name": "Sumario Diario BOE",
+      "description": "Sumario completo del BOE para una fecha específica",
+      "mimeType": "application/json"
+    },
+    {
+      "uri": "boe://document/{id}",
+      "name": "Documento BOE",
+      "description": "Contenido completo de un documento específico del BOE",
+      "mimeType": "application/xml"
+    },
+    {
+      "uri": "boe://search-results/{query}",
+      "name": "Resultados de Búsqueda",
+      "description": "Resultados de búsqueda en el BOE",
+      "mimeType": "application/json"
+    }
+  ],
+  "serverInfo": {
+    "name": "mcp-boe-server",
+    "version": "1.0.0",
+    "endpoints": {
+      "base_url": "https://mcpboe-func-prod.azurewebsites.net/api",
+      "health_check": "/health"
+    },
+    "authentication": {
+      "required": false,
+      "type": "none"
+    },
+    "rate_limits": {
+      "requests_per_minute": 60,
+      "requests_per_hour": 1000
+    }
+  },
+  "usage_examples": [
+    {
+      "scenario": "Búsqueda de normativa reciente sobre inteligencia artificial",
+      "steps": [
+        {
+          "tool": "boe_legislation_search",
+          "params": {"query": "inteligencia artificial", "section": "I", "limit": 10}
+        },
+        {
+          "tool": "boe_legislation_document",
+          "params": {"id": "{document_id_from_search}", "format": "xml"}
+        }
+      ]
+    },
+    {
+      "scenario": "Análisis de publicaciones de un ministerio específico",
+      "steps": [
+        {
+          "tool": "boe_auxiliary_departments",
+          "params": {"filter": "Ministerio de Justicia"}
+        },
+        {
+          "tool": "boe_legislation_search",
+          "params": {"department": "Ministerio de Justicia", "dateRange": {"from": "2024-01-01", "to": "2024-12-31"}}
+        }
+      ]
+    },
+    {
+      "scenario": "Monitoreo diario de nuevas disposiciones",
+      "steps": [
+        {
+          "tool": "boe_summary_daily",
+          "params": {"date": "2024-01-15", "section": "I"}
+        },
+        {
+          "tool": "boe_summary_section",
+          "params": {"section": "I", "date": "2024-01-15", "detailed": true}
+        }
+      ]
+    }
+  ],
+  "error_handling": {
+    "common_errors": [
+      {
+        "code": "INVALID_DATE",
+        "message": "Fecha inválida o futura",
+        "solution": "Usar formato YYYY-MM-DD y fecha no superior a hoy"
+      },
+      {
+        "code": "DOCUMENT_NOT_FOUND",
+        "message": "Documento no encontrado",
+        "solution": "Verificar que el ID del documento sea correcto"
+      },
+      {
+        "code": "RATE_LIMIT_EXCEEDED",
+        "message": "Límite de solicitudes excedido",
+        "solution": "Esperar antes de realizar nuevas solicitudes"
+      }
+    ]
+  }
+}

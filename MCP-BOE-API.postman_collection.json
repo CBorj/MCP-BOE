@@ -1,0 +1,82 @@
+{
+  "info": {
+    "name": "MCP-BOE API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Buscar Legislación",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"query\": \"Constitución Española\", \"limit\": 5}"
+        },
+        "url": {
+          "raw": "http://localhost:8000/search/legislation",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["search", "legislation"]
+        }
+      }
+    },
+    {
+      "name": "Sumario del BOE",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"date\": \"20240529\", \"max_items\": 10}"
+        },
+        "url": {
+          "raw": "http://localhost:8000/summary/boe",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["summary", "boe"]
+        }
+      }
+    },
+    {
+      "name": "Buscar Departamentos",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"search_term\": \"Ministerio\", \"limit\": 10}"
+        },
+        "url": {
+          "raw": "http://localhost:8000/auxiliary/departments",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["auxiliary", "departments"]
+        }
+      }
+    },
+    {
+      "name": "Descripción de Código",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8000/auxiliary/code/7723",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["auxiliary", "code", "7723"]
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,134 @@
+name: Build and Deploy to Azure Functions
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  AZURE_FUNCTIONAPP_PACKAGE_PATH: '.'
+  DOTNET_VERSION: '8.0.x'
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+    - name: 'Checkout GitHub Action'
+      uses: actions/checkout@v4
+
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Restore dependencies
+      run: dotnet restore MCPBoe.FunctionApp/MCPBoe.sln
+
+    - name: Build Core Library
+      run: dotnet build MCPBoe.FunctionApp/src/MCPBoe.Core/MCPBoe.Core.csproj --no-restore --configuration Release
+
+    - name: Build Function App
+      run: dotnet build MCPBoe.FunctionApp/src/MCPBoe.FunctionApp/MCPBoe.FunctionApp.csproj --no-restore --configuration Release
+
+    - name: Run tests (if any exist)
+      run: |
+        if [ -d "MCPBoe.FunctionApp/tests" ]; then
+          dotnet test MCPBoe.FunctionApp/tests --no-build --configuration Release --verbosity normal
+        else
+          echo "No tests found, skipping test execution"
+        fi
+
+    - name: Publish Function App
+      run: dotnet publish MCPBoe.FunctionApp/src/MCPBoe.FunctionApp/MCPBoe.FunctionApp.csproj --configuration Release --output ./output
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: function-app
+        path: ./output
+
+  deploy-infrastructure:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    environment: production
+    outputs:
+      functionAppName: ${{ steps.deploy.outputs.functionAppName }}
+    steps:
+    - name: 'Checkout GitHub Action'
+      uses: actions/checkout@v4
+
+    - name: Login to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Deploy Bicep template
+      id: deploy
+      uses: azure/arm-deploy@v1
+      with:
+        subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        resourceGroupName: ${{ secrets.AZURE_RG }}
+        template: ./infra/main.bicep
+        parameters: ./infra/prod.parameters.json
+        failOnStdErr: false
+
+  deploy-function:
+    needs: [build-and-test, deploy-infrastructure]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    environment: production
+    steps:
+    - name: Download build artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: function-app
+        path: ./output
+
+    - name: Login to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: 'Deploy to Azure Functions'
+      uses: Azure/functions-action@v1
+      with:
+        app-name: ${{ needs.deploy-infrastructure.outputs.functionAppName }}
+        package: './output'
+
+  deploy-dev:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    environment: development
+    steps:
+    - name: 'Checkout GitHub Action'
+      uses: actions/checkout@v4
+
+    - name: Download build artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: function-app
+        path: ./output
+
+    - name: Login to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS_DEV }}
+
+    - name: Deploy Dev Infrastructure
+      uses: azure/arm-deploy@v1
+      with:
+        subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        resourceGroupName: ${{ secrets.AZURE_RG_DEV }}
+        template: ./infra/main.bicep
+        parameters: ./infra/dev.parameters.json
+        failOnStdErr: false
+
+    - name: 'Deploy to Dev Azure Functions'
+      uses: Azure/functions-action@v1
+      with:
+        app-name: 'mcpboe-func-dev'
+        package: './output'

@@ -1,0 +1,607 @@
+{
+  "info": {
+    "name": "MCP-BOE API Tests",
+    "description": "Colección completa para testear el API MCP-BOE desplegado en Azure Functions",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "item": [
+    {
+      "name": "Sistema",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            },
+            "description": "Verificar estado del servidor MCP-BOE"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has success field\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('success');",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"Health data structure\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('Status');",
+                  "    pm.expect(jsonData.data).to.have.property('Timestamp');",
+                  "    pm.expect(jsonData.data).to.have.property('Version');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "API Info",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/info",
+              "host": ["{{baseUrl}}"],
+              "path": ["info"]
+            },
+            "description": "Obtener información del API y endpoints disponibles"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"API Info structure\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('Name');",
+                  "    pm.expect(jsonData.data).to.have.property('Description');",
+                  "    pm.expect(jsonData.data).to.have.property('Endpoints');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Legislación",
+      "item": [
+        {
+          "name": "Legislation Summary",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/legislation/summary?limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["legislation", "summary"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "date",
+                  "value": "{{todayDate}}",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Resumen general de legislación del BOE"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Summary structure\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('totalDocuments');",
+                  "    pm.expect(jsonData.data.totalDocuments).to.be.a('number');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Legislation Search Basic",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/legislation/search?query=subvenciones&limit=5",
+              "host": ["{{baseUrl}}"],
+              "path": ["legislation", "search"],
+              "query": [
+                {
+                  "key": "query",
+                  "value": "subvenciones"
+                },
+                {
+                  "key": "limit",
+                  "value": "5"
+                }
+              ]
+            },
+            "description": "Búsqueda básica de documentos legislativos"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Search results structure\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('totalResults');",
+                  "    pm.expect(jsonData.data.totalResults).to.be.a('number');",
+                  "    ",
+                  "    if (jsonData.data.totalResults > 0) {",
+                  "        pm.expect(jsonData.data).to.have.property('documents');",
+                  "        pm.expect(jsonData.data.documents).to.be.an('array');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Legislation Search Advanced",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/legislation/search?query=inteligencia artificial&section=I&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["legislation", "search"],
+              "query": [
+                {
+                  "key": "query",
+                  "value": "inteligencia artificial"
+                },
+                {
+                  "key": "section",
+                  "value": "I"
+                },
+                {
+                  "key": "department",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Búsqueda avanzada con filtros de sección y departamento"
+          }
+        },
+        {
+          "name": "Get Specific Document",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/legislation/document/{{documentId}}?format=xml&includeMetadata=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["legislation", "document", "{{documentId}}"],
+              "query": [
+                {
+                  "key": "format",
+                  "value": "xml"
+                },
+                {
+                  "key": "includeMetadata",
+                  "value": "true"
+                }
+              ]
+            },
+            "description": "Obtener documento específico por ID (usar ID real de BOE)"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Document structure\", function () {",
+                  "    if (pm.response.code === 200) {",
+                  "        const jsonData = pm.response.json();",
+                  "        const doc = jsonData.data.document;",
+                  "        ",
+                  "        pm.expect(doc).to.have.property('id');",
+                  "        pm.expect(doc).to.have.property('title');",
+                  "        pm.expect(doc).to.have.property('date');",
+                  "        pm.expect(doc).to.have.property('section');",
+                  "    }",
+                  "});"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Establecer un ID de documento de ejemplo",
+                  "// Cambiar por un ID real del BOE",
+                  "pm.collectionVariables.set(\"documentId\", \"BOE-A-2024-00001\");"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Sumarios",
+      "item": [
+        {
+          "name": "Daily Summary",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/summary/daily?date={{yesterdayDate}}&section=all",
+              "host": ["{{baseUrl}}"],
+              "path": ["summary", "daily"],
+              "query": [
+                {
+                  "key": "date",
+                  "value": "{{yesterdayDate}}"
+                },
+                {
+                  "key": "section",
+                  "value": "all"
+                },
+                {
+                  "key": "includeContent",
+                  "value": "false",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Sumario diario del BOE por fecha"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Generar fecha de ayer",
+                  "const yesterday = new Date();",
+                  "yesterday.setDate(yesterday.getDate() - 1);",
+                  "const dateString = yesterday.toISOString().split('T')[0];",
+                  "pm.collectionVariables.set(\"yesterdayDate\", dateString);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Daily summary structure\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('date');",
+                  "    pm.expect(jsonData.data).to.have.property('sections');",
+                  "    pm.expect(jsonData.data).to.have.property('totalDocuments');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Summary Search",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/summary/search?query={{randomSearchTerm}}&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["summary", "search"],
+              "query": [
+                {
+                  "key": "query",
+                  "value": "{{randomSearchTerm}}"
+                },
+                {
+                  "key": "section",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Búsqueda en sumarios del BOE"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Generar término de búsqueda aleatorio",
+                  "const searchTerms = ['ley', 'decreto', 'orden', 'resolución', 'subvención', 'concurso'];",
+                  "const randomTerm = searchTerms[Math.floor(Math.random() * searchTerms.length)];",
+                  "pm.collectionVariables.set(\"randomSearchTerm\", randomTerm);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Section Summary",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/summary/section/I?date={{yesterdayDate}}&detailed=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["summary", "section", "I"],
+              "query": [
+                {
+                  "key": "date",
+                  "value": "{{yesterdayDate}}"
+                },
+                {
+                  "key": "detailed",
+                  "value": "true"
+                }
+              ]
+            },
+            "description": "Sumario de una sección específica del BOE"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auxiliares",
+      "item": [
+        {
+          "name": "Get Departments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auxiliary/departments?includeStats=false",
+              "host": ["{{baseUrl}}"],
+              "path": ["auxiliary", "departments"],
+              "query": [
+                {
+                  "key": "filter",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "includeStats",
+                  "value": "false"
+                }
+              ]
+            },
+            "description": "Lista de departamentos/ministerios del BOE"
+          }
+        },
+        {
+          "name": "Get Sections",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auxiliary/sections?includeDescription=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["auxiliary", "sections"],
+              "query": [
+                {
+                  "key": "includeDescription",
+                  "value": "true"
+                }
+              ]
+            },
+            "description": "Secciones del BOE (I, II, III, IV, V)"
+          }
+        },
+        {
+          "name": "Get Subsections",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auxiliary/subsections?section=I",
+              "host": ["{{baseUrl}}"],
+              "path": ["auxiliary", "subsections"],
+              "query": [
+                {
+                  "key": "section",
+                  "value": "I"
+                }
+              ]
+            },
+            "description": "Subsecciones de una sección específica"
+          }
+        },
+        {
+          "name": "Get Document Types",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auxiliary/document-types?includeExamples=false",
+              "host": ["{{baseUrl}}"],
+              "path": ["auxiliary", "document-types"],
+              "query": [
+                {
+                  "key": "section",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "includeExamples",
+                  "value": "false"
+                }
+              ]
+            },
+            "description": "Tipos de documentos del BOE (ley, decreto, orden, etc.)"
+          }
+        },
+        {
+          "name": "Get Territories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auxiliary/territories?includeStats=false",
+              "host": ["{{baseUrl}}"],
+              "path": ["auxiliary", "territories"],
+              "query": [
+                {
+                  "key": "includeStats",
+                  "value": "false"
+                }
+              ]
+            },
+            "description": "Territorios y comunidades autónomas"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tests de Error",
+      "item": [
+        {
+          "name": "Invalid Document ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/legislation/document/INVALID-ID",
+              "host": ["{{baseUrl}}"],
+              "path": ["legislation", "document", "INVALID-ID"]
+            },
+            "description": "Test de error 400 - ID inválido"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Should return 400 for invalid ID\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test(\"Error response structure\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('success');",
+                  "    pm.expect(jsonData.success).to.be.false;",
+                  "    pm.expect(jsonData).to.have.property('error');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Future Date Error",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/summary/daily?date=2025-12-31",
+              "host": ["{{baseUrl}}"],
+              "path": ["summary", "daily"],
+              "query": [
+                {
+                  "key": "date",
+                  "value": "2025-12-31"
+                }
+              ]
+            },
+            "description": "Test de error 400 - Fecha futura"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Should return 400 for future date\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Script global que se ejecuta antes de cada request",
+          "const today = new Date();",
+          "const todayString = today.toISOString().split('T')[0];",
+          "pm.collectionVariables.set(\"todayDate\", todayString);"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Tests globales que se ejecutan después de cada request",
+          "pm.test(\"Response time is acceptable\", function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(10000);",
+          "});",
+          "",
+          "pm.test(\"Content-Type is application/json\", function () {",
+          "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+          "});"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://mcpboe-func-prod.azurewebsites.net/api",
+      "type": "string"
+    },
+    {
+      "key": "localUrl",
+      "value": "http://localhost:7071/api",
+      "type": "string"
+    }
+  ]
+}
