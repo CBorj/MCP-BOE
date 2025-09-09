@@ -1,0 +1,33 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+
+name: mcpboe-function-app
+metadata:
+  template: mcpboe-function-app@0.0.1-beta
+  
+infra:
+  provider: bicep
+  path: infra
+
+services:
+  api:
+    project: ./MCPBoe.FunctionApp/src/MCPBoe.FunctionApp
+    dist: ./MCPBoe.FunctionApp/src/MCPBoe.FunctionApp/bin/Release/net8.0
+    language: dotnet
+    host: function
+
+hooks:
+  predeploy:
+    windows:
+      shell: pwsh
+      run: |
+        Write-Host "Building .NET application..."
+        cd MCPBoe.FunctionApp/src/MCPBoe.FunctionApp
+        dotnet publish --configuration Release --output bin/Release/net8.0
+        Write-Host "Build completed successfully!"
+    posix:
+      shell: sh  
+      run: |
+        echo "Building .NET application..."
+        cd MCPBoe.FunctionApp/src/MCPBoe.FunctionApp
+        dotnet publish --configuration Release --output bin/Release/net8.0
+        echo "Build completed successfully!"

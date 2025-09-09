@@ -8,8 +8,14 @@
     "environment": {
       "value": "dev"
     },
+    "environmentName": {
+      "value": "${AZURE_ENV_NAME}"
+    },
+    "location": {
+      "value": "${AZURE_LOCATION}"
+    },
     "appServicePlanSku": {
-      "value": "Y1"
+      "value": "FC1"
     }
   }
 }

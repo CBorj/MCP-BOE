@@ -8,6 +8,12 @@
     "environment": {
       "value": "prod"
     },
+    "environmentName": {
+      "value": "${AZURE_ENV_NAME}"
+    },
+    "location": {
+      "value": "${AZURE_LOCATION}"
+    },
     "appServicePlanSku": {
       "value": "EP1"
     }
