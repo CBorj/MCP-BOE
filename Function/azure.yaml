@@ -10,24 +10,6 @@ infra:
 
 services:
   api:
-    project: ./MCPBoe.FunctionApp/src/MCPBoe.FunctionApp
-    dist: ./MCPBoe.FunctionApp/src/MCPBoe.FunctionApp/bin/Release/net8.0
+    project: ./MCPBoe.FunctionApp/src/MCPBoe.FunctionApp/MCPBoe.FunctionApp.csproj
     language: dotnet
     host: function
-
-hooks:
-  predeploy:
-    windows:
-      shell: pwsh
-      run: |
-        Write-Host "Building .NET application..."
-        cd MCPBoe.FunctionApp/src/MCPBoe.FunctionApp
-        dotnet publish --configuration Release --output bin/Release/net8.0
-        Write-Host "Build completed successfully!"
-    posix:
-      shell: sh  
-      run: |
-        echo "Building .NET application..."
-        cd MCPBoe.FunctionApp/src/MCPBoe.FunctionApp
-        dotnet publish --configuration Release --output bin/Release/net8.0
-        echo "Build completed successfully!"

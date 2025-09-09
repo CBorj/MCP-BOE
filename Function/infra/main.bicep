@@ -13,7 +13,7 @@ param environmentName string
 
 @description('SKU del plan de App Service')
 @allowed(['FC1', 'EP1', 'EP2', 'EP3'])
-param appServicePlanSku string = 'FC1'
+param appServicePlanSku string = 'EP1'
 
 // Variables
 var resourceToken = uniqueString(subscription().id, resourceGroup().id, location, environmentName)
@@ -256,6 +256,7 @@ resource functionApp 'Microsoft.Web/sites@2022-09-01' = {
   }
   tags: {
     'azd-env-name': environmentName
+    'azd-service-name': 'api'
   }
   dependsOn: [
     storageBlobDataOwnerRoleAssignment
@@ -275,20 +276,12 @@ resource functionAppDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-0
       {
         category: 'FunctionAppLogs'
         enabled: true
-        retentionPolicy: {
-          enabled: true
-          days: 30
-        }
       }
     ]
     metrics: [
       {
         category: 'AllMetrics'
         enabled: true
-        retentionPolicy: {
-          enabled: true
-          days: 30
-        }
       }
     ]
   }
